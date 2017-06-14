@@ -3,12 +3,16 @@ branches:
   only:
   - master
   - develop
-
 language: node_js
-
-node_js:
-  - "6"
-  - "7"
-
-script:
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: false
+      node_js: "6"
+    - os: linux
+      dist: trusty
+      sudo: false
+      node_js: "7"
+after_success:
   - npm run coveralls
