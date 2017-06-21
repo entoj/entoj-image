@@ -20,7 +20,7 @@ describe(ImageRenderer.className, function()
     /**
      * Base Test
      */
-    baseSpec(ImageRenderer, 'image.renderer/ImageRenderer', function(parameters)
+    baseSpec(ImageRenderer, 'renderer/ImageRenderer', function(parameters)
     {
         return [new PathesConfiguration()];
     });

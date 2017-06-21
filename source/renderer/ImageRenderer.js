@@ -16,7 +16,7 @@ const sharp = require('sharp');
 
 
 /**
- * @memberOf image.renderer
+ * @memberOf renderer
  * @class
  * @extends Base
  */
@@ -47,7 +47,7 @@ class ImageRenderer extends Base
      */
     static get injections()
     {
-        return { 'parameters': [PathesConfiguration, 'image/ImageResizer.options'] };
+        return { 'parameters': [PathesConfiguration, 'renderer/ImageResizer.options'] };
     }
 
 
@@ -56,7 +56,7 @@ class ImageRenderer extends Base
      */
     static get className()
     {
-        return 'image.renderer/ImageRenderer';
+        return 'renderer/ImageRenderer';
     }
 
 

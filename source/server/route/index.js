@@ -1,5 +1,5 @@
 /**
- * @namespace image.server.route
+ * @namespace server.route
  */
 module.exports =
 {

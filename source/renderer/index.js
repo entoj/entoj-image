@@ -1,5 +1,5 @@
 /**
- * @namespace image.renderer
+ * @namespace renderer
  */
 module.exports =
 {

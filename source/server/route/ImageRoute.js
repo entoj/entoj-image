@@ -38,7 +38,7 @@ class ImageRoute extends Route
      */
     static get injections()
     {
-        return { 'parameters': [CliLogger, ImageRenderer, 'image.server.route/ImageRoute.options'] };
+        return { 'parameters': [CliLogger, ImageRenderer, 'server.route/ImageRoute.options'] };
     }
 
 
@@ -47,7 +47,7 @@ class ImageRoute extends Route
      */
     static get className()
     {
-        return 'image.server.route/ImageRoute';
+        return 'server.route/ImageRoute';
     }
 
 
@@ -93,8 +93,12 @@ class ImageRoute extends Route
      */
     register(express)
     {
-        super.register(express);
-        express.all(this.path, this.handleImage.bind(this));
+        const promise = super.register(express);
+        promise.then(() =>
+        {
+            express.all(this.path, this.handleImage.bind(this));
+        });
+        return promise;
     }
 }
 

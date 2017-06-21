@@ -1,5 +1,5 @@
 /**
- * @namespace image.server
+ * @namespace server
  */
 module.exports =
 {

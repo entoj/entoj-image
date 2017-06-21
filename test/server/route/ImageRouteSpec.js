@@ -20,7 +20,7 @@ describe(ImageRoute.className, function()
     /**
      * Route Test
      */
-    routeSpec(ImageRoute, 'image.server.route/ImageRoute', function(parameters)
+    routeSpec(ImageRoute, 'server.route/ImageRoute', function(parameters)
     {
         const imageRenderer = new ImageRenderer(new PathesConfiguration());
         const cliLogger = new CliLogger('', { muted: true });
