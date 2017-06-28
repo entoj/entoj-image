@@ -6,6 +6,7 @@
  */
 const Base = require('entoj-system').Base;
 const PathesConfiguration = require('entoj-system').model.configuration.PathesConfiguration;
+const ErrorHandler = require('entoj-system').error.ErrorHandler;
 const assertParameter = require('entoj-system').utils.assert.assertParameter;
 const glob = require('entoj-system').utils.glob;
 const pathes = require('entoj-system').utils.pathes;
@@ -163,7 +164,7 @@ class ImageRenderer extends Base
 
             // Done
             return result;
-        });
+        }).catch(ErrorHandler.handler(scope));
         return promise;
     }
 
@@ -188,7 +189,7 @@ class ImageRenderer extends Base
             }
             const index = Math.round(Math.random() * (files.length - 1));
             return files[index];
-        });
+        }).catch(ErrorHandler.handler(scope));
         return promise;
     }
 
@@ -210,7 +211,7 @@ class ImageRenderer extends Base
         {
             const basePath = yield scope.pathesConfiguration.resolveCache('/' + scope.cacheName);
             return pathes.concat(basePath, (width || 0) + 'x' + (height || 0) + '-' + (forced || false) + '-' + path.basename(filename));
-        });
+        }).catch(ErrorHandler.handler(scope));
         return promise;
     }
 
@@ -402,7 +403,7 @@ class ImageRenderer extends Base
             }
 
             return cacheFilename;
-        });
+        }).catch(ErrorHandler.handler(scope));
         return promise;
     }
 }
