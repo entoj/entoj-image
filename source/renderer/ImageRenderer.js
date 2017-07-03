@@ -5,8 +5,10 @@
  * @ignore
  */
 const Base = require('entoj-system').Base;
+const ImageConfiguration = require('../configuration/ImageConfiguration.js').ImageConfiguration;
 const PathesConfiguration = require('entoj-system').model.configuration.PathesConfiguration;
 const ErrorHandler = require('entoj-system').error.ErrorHandler;
+const waitForPromise = require('entoj-system').utils.synchronize.waitForPromise;
 const assertParameter = require('entoj-system').utils.assert.assertParameter;
 const glob = require('entoj-system').utils.glob;
 const pathes = require('entoj-system').utils.pathes;
@@ -25,21 +27,24 @@ class ImageRenderer extends Base
 {
     /**
      * @param {Object} options
+     * @param {Boolean} options.useCache
+     * @param {String} options.sourcePath
+     * @param {String} options.cachePath
      */
-    constructor(pathesConfiguration, options)
+    constructor(imageConfiguration, pathesConfiguration, options)
     {
         super(options);
 
         // Check params
+        assertParameter(this, 'imageConfiguration', imageConfiguration, true, ImageConfiguration);
         assertParameter(this, 'pathesConfiguration', pathesConfiguration, true, PathesConfiguration);
 
         // Assign
         const opts = options || {};
-        this._pathesConfiguration = pathesConfiguration;
         this._useCache = (typeof opts.useCache !== 'undefined') ? opts.useCache : true;
         this._resizableFileExtensions = opts.resizableFileExtensions || ['.png', '.jpg'];
-        this.cacheName = 'images';
-        this.dataName = 'images';
+        this._sourcePath = waitForPromise(pathesConfiguration.resolve(opts.sourcePath || imageConfiguration.sourcePath));
+        this._cachePath = waitForPromise(pathesConfiguration.resolve(opts.cachePath || imageConfiguration.cachePath));
     }
 
 
@@ -62,19 +67,29 @@ class ImageRenderer extends Base
 
 
     /**
-     * @type {model.configuration.PathesConfiguration}
-     */
-    get pathesConfiguration()
-    {
-        return this._pathesConfiguration;
-    }
-
-    /**
      * @type {Boolean}
      */
     get useCache()
     {
         return this._useCache;
+    }
+
+
+    /**
+     * @type {String}
+     */
+    get sourcePath()
+    {
+        return this._sourcePath;
+    }
+
+
+    /**
+     * @type {String}
+     */
+    get cachePath()
+    {
+        return this._cachePath;
     }
 
 
@@ -181,8 +196,8 @@ class ImageRenderer extends Base
         const scope = this;
         const promise = co(function*()
         {
-            const basePath = yield scope.pathesConfiguration.resolveData('/' + scope.dataName);
-            const files = yield glob(pathes.concat(basePath, name));
+            const pth = path.join(scope.sourcePath, '/' + name);
+            const files = yield glob(pth);
             if (!files || !files.length)
             {
                 return false;
@@ -206,13 +221,9 @@ class ImageRenderer extends Base
      */
     resolveCacheFilename(filename, width, height, forced)
     {
-        const scope = this;
-        const promise = co(function*()
-        {
-            const basePath = yield scope.pathesConfiguration.resolveCache('/' + scope.cacheName);
-            return pathes.concat(basePath, (width || 0) + 'x' + (height || 0) + '-' + (forced || false) + '-' + path.basename(filename));
-        }).catch(ErrorHandler.handler(scope));
-        return promise;
+        const result = pathes.concat(this.cachePath,
+            '/' + (width || 0) + 'x' + (height || 0) + '-' + (forced || false) + '-' + path.basename(filename));
+        return Promise.resolve(result);
     }
 
 
@@ -356,8 +367,7 @@ class ImageRenderer extends Base
                 : '0';
 
             // Ensure cache
-            const cachePath = yield scope.pathesConfiguration.resolveCache('/' + scope.cacheName);
-            yield fs.mkdirp(cachePath);
+            yield fs.mkdirp(scope.cachePath);
 
             // See if image needs to be resized
             const imageFilename = yield scope.resolveImageFilename(name);

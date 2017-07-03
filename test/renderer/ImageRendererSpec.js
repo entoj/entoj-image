@@ -4,7 +4,9 @@
  * Requirements
  */
 const ImageRenderer = require(IMAGE_SOURCE + '/renderer/ImageRenderer.js').ImageRenderer;
+const ImageConfiguration = require(IMAGE_SOURCE + '/configuration/ImageConfiguration.js').ImageConfiguration;
 const PathesConfiguration = require('entoj-system').model.configuration.PathesConfiguration;
+const GlobalConfiguration = require('entoj-system').model.configuration.GlobalConfiguration;
 const baseSpec = require('entoj-system/test').BaseShared;
 const path = require('path');
 const co = require('co');
@@ -22,7 +24,7 @@ describe(ImageRenderer.className, function()
      */
     baseSpec(ImageRenderer, 'renderer/ImageRenderer', function(parameters)
     {
-        return [new PathesConfiguration()];
+        return [new ImageConfiguration(new GlobalConfiguration()), new PathesConfiguration()];
     });
 
 
@@ -35,21 +37,31 @@ describe(ImageRenderer.className, function()
         {
             const options =
             {
-                dataTemplate: path.join(IMAGE_FIXTURES),
-                cacheTemplate: path.join(IMAGE_FIXTURES, 'temp')
+                image:
+                {
+                    sourcePath: path.join(IMAGE_FIXTURES, 'images'),
+                    cachePath: path.join(IMAGE_FIXTURES, 'temp')
+                }
             };
-            global.fixtures.pathesConfiguration = new PathesConfiguration(options);
-            yield fs.emptyDir(options.cacheTemplate);
+            global.fixtures.globalConfiguration = new GlobalConfiguration(options);
+            global.fixtures.imageConfiguration = new ImageConfiguration(global.fixtures.globalConfiguration);
+            global.fixtures.pathesConfiguration = new PathesConfiguration();
+            yield fs.emptyDir(options.image.cachePath);
         });
         return promise;
     });
 
+    // create a initialized testee instance
+    const createTestee = function(config)
+    {
+        return new ImageRenderer(global.fixtures.imageConfiguration, global.fixtures.pathesConfiguration);
+    };
 
     describe('#getImage()', function()
     {
         it('should resolve false when image was not found', function()
         {
-            const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+            const testee = createTestee();
             const promise = co(function*()
             {
                 expect(yield testee.getImage()).to.be.not.ok;
@@ -61,7 +73,7 @@ describe(ImageRenderer.className, function()
 
         it('should resolve to a sharp image when given a filename', function()
         {
-            const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+            const testee = createTestee();
             const promise = co(function*()
             {
                 const image = yield testee.getImage(path.join(IMAGE_FIXTURES, '/images/southpark-01.jpg'));
@@ -72,7 +84,7 @@ describe(ImageRenderer.className, function()
 
         it('should resolve to a sharp image when given a sharp', function()
         {
-            const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+            const testee = createTestee();
             const promise = co(function*()
             {
                 const img = sharp();
@@ -89,7 +101,7 @@ describe(ImageRenderer.className, function()
     {
         it('should resolve to false when given a existing image name', function()
         {
-            const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+            const testee = createTestee();
             const promise = co(function*()
             {
                 const filename = yield testee.resolveImageFilename('sousspark-01.jpg');
@@ -101,22 +113,22 @@ describe(ImageRenderer.className, function()
 
         it('should resolve to a filename when given a existing image name', function()
         {
-            const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+            const testee = createTestee();
             const promise = co(function*()
             {
                 const filename = yield testee.resolveImageFilename('southpark-01.jpg');
-                expect(filename).to.be.equal(path.join(global.fixtures.pathesConfiguration.data, '/images/southpark-01.jpg'));
+                expect(filename).to.be.equal(path.join(IMAGE_FIXTURES, '/images/southpark-01.jpg'));
             });
             return promise;
         });
 
         it('should resolve to a random filename when given a valid glob pattern', function()
         {
-            const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+            const testee = createTestee();
             const expected =
             [
-                path.join(global.fixtures.pathesConfiguration.data, '/images/southpark-01.jpg'),
-                path.join(global.fixtures.pathesConfiguration.data, '/images/southpark-02.jpg')
+                path.join(IMAGE_FIXTURES, '/images/southpark-01.jpg'),
+                path.join(IMAGE_FIXTURES, '/images/southpark-02.jpg')
             ];
             const promise = co(function*()
             {
@@ -135,22 +147,21 @@ describe(ImageRenderer.className, function()
     {
         it('should resolve to a filename based on all given parameters', function()
         {
-            const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+            const testee = createTestee();
             const promise = co(function*()
             {
-                const cachePath = yield global.fixtures.pathesConfiguration.resolveCache('/images');
                 const imageFilename = yield testee.resolveImageFilename('southpark-01.jpg');
                 let filename;
                 filename = yield testee.resolveCacheFilename(imageFilename);
-                expect(filename).to.be.equal(path.join(cachePath, '/0x0-false-southpark-01.jpg'));
+                expect(filename).to.be.equal(path.join(IMAGE_FIXTURES, '/temp/0x0-false-southpark-01.jpg'));
                 filename = yield testee.resolveCacheFilename(imageFilename, 100);
-                expect(filename).to.be.equal(path.join(cachePath + '/100x0-false-southpark-01.jpg'));
+                expect(filename).to.be.equal(path.join(IMAGE_FIXTURES + '/temp/100x0-false-southpark-01.jpg'));
                 filename = yield testee.resolveCacheFilename(imageFilename, undefined, 100);
-                expect(filename).to.be.equal(path.join(cachePath + '/0x100-false-southpark-01.jpg'));
+                expect(filename).to.be.equal(path.join(IMAGE_FIXTURES + '/temp/0x100-false-southpark-01.jpg'));
                 filename = yield testee.resolveCacheFilename(imageFilename, undefined, undefined, true);
-                expect(filename).to.be.equal(path.join(cachePath + '/0x0-true-southpark-01.jpg'));
+                expect(filename).to.be.equal(path.join(IMAGE_FIXTURES + '/temp/0x0-true-southpark-01.jpg'));
                 filename = yield testee.resolveCacheFilename(imageFilename, 1000, 2000, true);
-                expect(filename).to.be.equal(path.join(cachePath + '/1000x2000-true-southpark-01.jpg'));
+                expect(filename).to.be.equal(path.join(IMAGE_FIXTURES + '/temp/1000x2000-true-southpark-01.jpg'));
             });
             return promise;
         });
@@ -161,7 +172,7 @@ describe(ImageRenderer.className, function()
     {
         it('should resolve false for an invalid image', function()
         {
-            const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+            const testee = createTestee();
             const promise = co(function*()
             {
                 const size = yield testee.getImageSettings();
@@ -173,7 +184,7 @@ describe(ImageRenderer.className, function()
 
         it('should resolve to a object containing the image width and height', function()
         {
-            const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+            const testee = createTestee();
             const promise = co(function*()
             {
                 const imageFilename = yield testee.resolveImageFilename('southpark-01.jpg');
@@ -186,7 +197,7 @@ describe(ImageRenderer.className, function()
 
         it('should add a default focal point', function()
         {
-            const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+            const testee = createTestee();
             const promise = co(function*()
             {
                 const imageFilename = yield testee.resolveImageFilename('southpark-01.jpg');
@@ -201,7 +212,7 @@ describe(ImageRenderer.className, function()
 
         it('should read a json file with the same name as the image that contains the focal point', function()
         {
-            const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+            const testee = createTestee();
             const promise = co(function*()
             {
                 const imageFilename = yield testee.resolveImageFilename('southpark-02.jpg');
@@ -245,7 +256,7 @@ describe(ImageRenderer.className, function()
         {
             it(label, function()
             {
-                const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+                const testee = createTestee();
                 const promise = co(function*()
                 {
                     const settings = createSettings(focalPoint);
@@ -278,7 +289,7 @@ describe(ImageRenderer.className, function()
 
         it('should resolve to a object containing x, y, width and height of the area', function()
         {
-            const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+            const testee = createTestee();
             const promise = co(function*()
             {
                 const area = yield testee.calculateCropArea(200, 100, '1', createSettings());
@@ -561,7 +572,7 @@ describe(ImageRenderer.className, function()
         {
             it(label, function()
             {
-                const testee = new ImageRenderer(global.fixtures.pathesConfiguration);
+                const testee = createTestee();
                 const promise = co(function*()
                 {
                     const filename = yield testee.resize(image, width, height, forced);

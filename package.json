@@ -13,22 +13,23 @@
     "test": "bash scripts/test"
   },
   "dependencies": {
-    "entoj-system": "https://github.com/entoj/entoj-system",
     "co": "*",
     "co-fs-extra": "*",
+    "entoj-system": "https://github.com/entoj/entoj-system",
+    "es6-template-strings": "^2.0.1",
     "sharp": "*"
   },
   "devDependencies": {
     "chai": "*",
     "coveralls": "*",
+    "entoj-test-fixture": "*",
+    "eslint": "*",
     "git-changelog": "*",
     "ink-docstrap": "*",
     "istanbul": "*",
     "jsdoc": "*",
     "mocha": "*",
     "sinon": "*",
-    "eslint": "*",
-    "entoj-test-fixture": "*",
     "supertest": "*"
   }
 }

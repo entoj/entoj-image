@@ -5,6 +5,7 @@
  * @ignore
  */
 const Route = require('entoj-system').server.route.Route;
+const ImageConfiguration = require('../../configuration/ImageConfiguration.js').ImageConfiguration;
 const ImageRenderer = require('../../renderer/ImageRenderer.js').ImageRenderer;
 const CliLogger = require('entoj-system').cli.CliLogger;
 const assertParameter = require('entoj-system').utils.assert.assertParameter;
@@ -19,17 +20,18 @@ class ImageRoute extends Route
      * @param {ImageResizer} [imageResizer]
      * @param {object} [options]
      */
-    constructor(cliLogger, imageRenderer, options)
+    constructor(cliLogger, imageConfiguration, imageRenderer, options)
     {
         super(cliLogger.createPrefixed('route.imageroute'));
 
         // Check params
         assertParameter(this, 'imageRenderer', imageRenderer, true, ImageRenderer);
+        assertParameter(this, 'imageConfiguration', imageConfiguration, true, ImageConfiguration);
 
         // Assign options
         const opts = options || '';
         this._imageRenderer = imageRenderer;
-        this._path = opts.path || '/images/:image/:width?/:height?/:forced?';
+        this._path = opts.path || imageConfiguration.expressRoute;
     }
 
 
