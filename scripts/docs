@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Prepare
+export FORCE_COLOR=true
+set -e
+
 # Prepare pathes
 SELF=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 JSDOC=$SELF/../node_modules/.bin/jsdoc
