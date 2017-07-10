@@ -53,7 +53,7 @@ class ImageRenderer extends Base
      */
     static get injections()
     {
-        return { 'parameters': [PathesConfiguration, 'renderer/ImageResizer.options'] };
+        return { 'parameters': [ImageConfiguration, PathesConfiguration, 'renderer/ImageResizer.options'] };
     }
 
 

@@ -40,7 +40,7 @@ class ImageRoute extends Route
      */
     static get injections()
     {
-        return { 'parameters': [CliLogger, ImageRenderer, 'server.route/ImageRoute.options'] };
+        return { 'parameters': [CliLogger, ImageConfiguration, ImageRenderer, 'server.route/ImageRoute.options'] };
     }
 
 
