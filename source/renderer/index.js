@@ -3,5 +3,7 @@
  */
 module.exports =
 {
-    ImageRenderer: require('./ImageRenderer.js').ImageRenderer
+    GmImageRenderer: require('./GmImageRenderer.js').GmImageRenderer,
+    ImageRenderer: require('./ImageRenderer.js').ImageRenderer,
+    SharpImageRenderer: require('./SharpImageRenderer.js').SharpImageRenderer
 };

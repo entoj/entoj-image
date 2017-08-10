@@ -5,7 +5,7 @@
  * @ignore
  */
 const Base = require('entoj-system').Base;
-const ImageConfiguration = require('../configuration/ImageConfiguration.js').ImageConfiguration;
+const ImageModuleConfiguration = require('../configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
 const PathesConfiguration = require('entoj-system').model.configuration.PathesConfiguration;
 const ErrorHandler = require('entoj-system').error.ErrorHandler;
 const waitForPromise = require('entoj-system').utils.synchronize.waitForPromise;
@@ -15,7 +15,6 @@ const pathes = require('entoj-system').utils.pathes;
 const co = require('co');
 const fs = require('co-fs-extra');
 const path = require('path');
-const sharp = require('sharp');
 
 
 /**
@@ -31,20 +30,20 @@ class ImageRenderer extends Base
      * @param {String} options.sourcePath
      * @param {String} options.cachePath
      */
-    constructor(imageConfiguration, pathesConfiguration, options)
+    constructor(imageModuleConfiguration, pathesConfiguration, options)
     {
         super(options);
 
         // Check params
-        assertParameter(this, 'imageConfiguration', imageConfiguration, true, ImageConfiguration);
+        assertParameter(this, 'imageModuleConfiguration', imageModuleConfiguration, true, ImageModuleConfiguration);
         assertParameter(this, 'pathesConfiguration', pathesConfiguration, true, PathesConfiguration);
 
         // Assign
         const opts = options || {};
         this._useCache = (typeof opts.useCache !== 'undefined') ? opts.useCache : true;
         this._resizableFileExtensions = opts.resizableFileExtensions || ['.png', '.jpg'];
-        this._sourcePath = waitForPromise(pathesConfiguration.resolve(opts.sourcePath || imageConfiguration.sourcePath));
-        this._cachePath = waitForPromise(pathesConfiguration.resolve(opts.cachePath || imageConfiguration.cachePath));
+        this._sourcePath = waitForPromise(pathesConfiguration.resolve(opts.sourcePath || imageModuleConfiguration.sourcePath));
+        this._cachePath = waitForPromise(pathesConfiguration.resolve(opts.cachePath || imageModuleConfiguration.cachePath));
     }
 
 
@@ -53,7 +52,7 @@ class ImageRenderer extends Base
      */
     static get injections()
     {
-        return { 'parameters': [ImageConfiguration, PathesConfiguration, 'renderer/ImageResizer.options'] };
+        return { 'parameters': [ImageModuleConfiguration, PathesConfiguration, 'renderer/ImageResizer.options'] };
     }
 
 
@@ -103,88 +102,6 @@ class ImageRenderer extends Base
 
 
     /**
-     * Creates a sharp image
-     *
-     * @protected
-     * @param {string} filename
-     * @returns {Promise<Object>}
-     */
-    getImage(filename)
-    {
-        const promise = co(function*()
-        {
-            if (typeof filename === 'string')
-            {
-                const exists = yield fs.exists(filename);
-                if (!exists)
-                {
-                    return false;
-                }
-                return sharp(filename);
-            }
-            return filename;
-        });
-        return promise;
-    }
-
-
-    /**
-     * Reads the image settings when available
-     *
-     * @protected
-     * @param {string} filename
-     * @returns {Promise<Object>}
-     */
-    getImageSettings(filename)
-    {
-        const scope = this;
-        const promise = co(function*()
-        {
-            // Get image
-            const image = yield scope.getImage(filename);
-            if (!image)
-            {
-                return false;
-            }
-
-            // Get metadata
-            const result = yield image.metadata();
-            /* istanbul ignore next */
-            if (!result)
-            {
-                return false;
-            }
-
-            // Get settings
-            const settingsFile = filename.substr(0, filename.length - 3) + 'json';
-            const settingsFileExists = yield fs.exists(settingsFile);
-
-            // Parse & return settings
-            if (settingsFileExists)
-            {
-                const settingsFileContent = yield fs.readFile(settingsFile, { encoding: 'utf8' });
-                result.focal = JSON.parse(settingsFileContent).focal;
-            }
-            // Create default settings
-            else
-            {
-                result.focal =
-                {
-                    x: 0,
-                    y: 0,
-                    width: result.width,
-                    height: result.height
-                };
-            }
-
-            // Done
-            return result;
-        }).catch(ErrorHandler.handler(scope));
-        return promise;
-    }
-
-
-    /**
      * Get source image filename
      *
      * @protected
@@ -224,6 +141,53 @@ class ImageRenderer extends Base
         const result = pathes.concat(this.cachePath,
             '/' + (width || 0) + 'x' + (height || 0) + '-' + (forced || false) + '-' + path.basename(filename));
         return Promise.resolve(result);
+    }
+
+
+    /**
+     * Reads the image settings when available
+     *
+     * @protected
+     * @param {string} filename
+     * @returns {Promise<Object>}
+     */
+    getImageSettings(filename)
+    {
+        if (!filename)
+        {
+            return Promise.resolve(false);
+        }
+        const scope = this;
+        const promise = co(function*()
+        {
+            const result = {};
+
+            // Get settings
+            const settingsFile = filename.substr(0, filename.length - 3) + 'json';
+            const settingsFileExists = yield fs.exists(settingsFile);
+
+            // Parse & return settings
+            if (settingsFileExists)
+            {
+                const settingsFileContent = yield fs.readFile(settingsFile, { encoding: 'utf8' });
+                result.focal = JSON.parse(settingsFileContent).focal;
+            }
+            // Create default settings
+            else
+            {
+                result.focal =
+                {
+                    x: 0,
+                    y: 0,
+                    width: 0,
+                    height: 0
+                };
+            }
+
+            // Done
+            return result;
+        }).catch(ErrorHandler.handler(scope));
+        return promise;
     }
 
 
@@ -342,6 +306,22 @@ class ImageRenderer extends Base
 
 
     /**
+     * Create a resized image and store it at cacheFilename
+     *
+     * @param {string} imageFilename
+     * @param {string} cacheFilename
+     * @param {number} width
+     * @param {number} height
+     * @param {string} forced
+     * @returns {Promise<string>}
+     */
+    renderImage(imageFilename, cacheFilename, width, height, forced)
+    {
+        return Promise.resolve(false);
+    }
+
+
+    /**
      * Get cached image
      *
      * @param {string} filename
@@ -366,7 +346,7 @@ class ImageRenderer extends Base
                 ? forced
                 : '0';
 
-            // Ensure cache
+            // Ensure cache directory
             yield fs.mkdirp(scope.cachePath);
 
             // See if image needs to be resized
@@ -388,30 +368,11 @@ class ImageRenderer extends Base
             }
 
             // Render
-            const image = yield scope.getImage(imageFilename);
-            const settings = yield scope.getImageSettings(imageFilename);
-
-            // forced
-            if (f !== '0' && w > 0 && h > 0)
+            const rendered = yield scope.renderImage(imageFilename, cacheFilename, w, h, f);
+            if (!rendered)
             {
-                const area = yield scope.calculateCropArea(w, h, f, settings);
-                yield image.extract(
-                    {
-                        left: area.x,
-                        top: area.y,
-                        width: area.width,
-                        height: area.height
-                    })
-                    .resize(w, h)
-                    .toFile(cacheFilename);
+                return imageFilename;
             }
-            else
-            {
-                yield image.resize(w > 0 ? w : undefined, h > 0 ? h : undefined)
-                    .embed()
-                    .toFile(cacheFilename);
-            }
-
             return cacheFilename;
         }).catch(ErrorHandler.handler(scope));
         return promise;
