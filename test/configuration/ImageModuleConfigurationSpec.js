@@ -3,7 +3,7 @@
 /**
  * Requirements
  */
-const ImageConfiguration = require(IMAGE_SOURCE + '/configuration/ImageConfiguration.js').ImageConfiguration;
+const ImageModuleConfiguration = require(IMAGE_SOURCE + '/configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
 const GlobalConfiguration = require('entoj-system').model.configuration.GlobalConfiguration;
 const baseSpec = require('entoj-system/test').BaseShared;
 
@@ -11,12 +11,12 @@ const baseSpec = require('entoj-system/test').BaseShared;
 /**
  * Spec
  */
-describe(ImageConfiguration.className, function()
+describe(ImageModuleConfiguration.className, function()
 {
     /**
      * Base Test
      */
-    baseSpec(ImageConfiguration, 'configuration/ImageConfiguration', function(parameters)
+    baseSpec(ImageModuleConfiguration, 'configuration/ImageModuleConfiguration', function(parameters)
     {
         return [new GlobalConfiguration()];
     });
@@ -29,7 +29,7 @@ describe(ImageConfiguration.className, function()
     // create a initialized testee instance
     const createTestee = function(config)
     {
-        return new ImageConfiguration(new GlobalConfiguration(config));
+        return new ImageModuleConfiguration(new GlobalConfiguration(config));
     };
 
     // Simple properties

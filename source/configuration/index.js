@@ -4,5 +4,5 @@
  */
 module.exports =
 {
-    ImageConfiguration: require('./ImageConfiguration.js').ImageConfiguration
+    ImageModuleConfiguration: require('./ImageModuleConfiguration.js').ImageModuleConfiguration
 };

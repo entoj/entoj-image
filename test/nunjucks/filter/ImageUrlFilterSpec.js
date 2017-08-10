@@ -4,7 +4,7 @@
  * Requirements
  */
 const ImageUrlFilter = require(IMAGE_SOURCE + '/nunjucks/filter/ImageUrlFilter.js').ImageUrlFilter;
-const ImageConfiguration = require(IMAGE_SOURCE + '/configuration/ImageConfiguration.js').ImageConfiguration;
+const ImageModuleConfiguration = require(IMAGE_SOURCE + '/configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
 const GlobalConfiguration = require('entoj-system').model.configuration.GlobalConfiguration;
 const filterSpec = require('entoj-system/test').nunjucks.FilterShared;
 
@@ -20,8 +20,8 @@ describe(ImageUrlFilter.className, function()
     filterSpec(ImageUrlFilter, 'nunjucks.filter/ImageUrlFilter', function()
     {
         const globalConfiguration = new GlobalConfiguration();
-        const imageConfiguration = new ImageConfiguration(globalConfiguration);
-        return [imageConfiguration];
+        const imageModuleConfiguration = new ImageModuleConfiguration(globalConfiguration);
+        return [imageModuleConfiguration];
     });
 
 
@@ -31,7 +31,7 @@ describe(ImageUrlFilter.className, function()
     // create a initialized testee instance
     const createTestee = function(config, dataProperties)
     {
-        return new ImageUrlFilter(new ImageConfiguration(new GlobalConfiguration(config)), dataProperties);
+        return new ImageUrlFilter(new ImageModuleConfiguration(new GlobalConfiguration(config)), dataProperties);
     };
 
 

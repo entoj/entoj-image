@@ -5,7 +5,7 @@
  * @ignore
  */
 const Route = require('entoj-system').server.route.Route;
-const ImageConfiguration = require('../../configuration/ImageConfiguration.js').ImageConfiguration;
+const ImageModuleConfiguration = require('../../configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
 const ImageRenderer = require('../../renderer/ImageRenderer.js').ImageRenderer;
 const CliLogger = require('entoj-system').cli.CliLogger;
 const assertParameter = require('entoj-system').utils.assert.assertParameter;
@@ -20,18 +20,18 @@ class ImageRoute extends Route
      * @param {ImageResizer} [imageResizer]
      * @param {object} [options]
      */
-    constructor(cliLogger, imageConfiguration, imageRenderer, options)
+    constructor(cliLogger, imageModuleConfiguration, imageRenderer, options)
     {
         super(cliLogger.createPrefixed('route.imageroute'));
 
         // Check params
         assertParameter(this, 'imageRenderer', imageRenderer, true, ImageRenderer);
-        assertParameter(this, 'imageConfiguration', imageConfiguration, true, ImageConfiguration);
+        assertParameter(this, 'imageModuleConfiguration', imageModuleConfiguration, true, ImageModuleConfiguration);
 
         // Assign options
         const opts = options || '';
         this._imageRenderer = imageRenderer;
-        this._path = opts.path || imageConfiguration.expressRoute;
+        this._path = opts.path || imageModuleConfiguration.expressRoute;
     }
 
 
@@ -40,7 +40,7 @@ class ImageRoute extends Route
      */
     static get injections()
     {
-        return { 'parameters': [CliLogger, ImageConfiguration, ImageRenderer, 'server.route/ImageRoute.options'] };
+        return { 'parameters': [CliLogger, ImageModuleConfiguration, ImageRenderer, 'server.route/ImageRoute.options'] };
     }
 
 

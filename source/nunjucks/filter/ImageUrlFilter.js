@@ -5,7 +5,7 @@
  * @ignore
  */
 const Filter = require('entoj-system').nunjucks.filter.Filter;
-const ImageConfiguration = require('../../configuration/ImageConfiguration.js').ImageConfiguration;
+const ImageModuleConfiguration = require('../../configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
 const assertParameter = require('entoj-system').utils.assert.assertParameter;
 const templateString = require('es6-template-strings');
 const isPlainObject = require('lodash.isplainobject');
@@ -26,16 +26,16 @@ class ImageUrlFilter extends Filter
     /**
      * @inheritDocs
      */
-    constructor(imageConfiguration, dataProperties)
+    constructor(imageModuleConfiguration, dataProperties)
     {
         super();
         this._name = 'imageUrl';
 
         // Check params
-        assertParameter(this, 'imageConfiguration', imageConfiguration, true, ImageConfiguration);
+        assertParameter(this, 'imageModuleConfiguration', imageModuleConfiguration, true, ImageModuleConfiguration);
 
         // Assign options
-        this._urlTemplate = imageConfiguration.expressUrl;
+        this._urlTemplate = imageModuleConfiguration.expressUrl;
         this._dataProperties = dataProperties || [];
     }
 
@@ -44,7 +44,7 @@ class ImageUrlFilter extends Filter
      */
     static get injections()
     {
-        return { 'parameters': [ImageConfiguration, 'nunjucks.filter/ImageUrlFilter.dataProperties'] };
+        return { 'parameters': [ImageModuleConfiguration, 'nunjucks.filter/ImageUrlFilter.dataProperties'] };
     }
 
 

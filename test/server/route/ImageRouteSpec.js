@@ -5,7 +5,7 @@
  */
 const ImageRoute = require(IMAGE_SOURCE + '/server/route/ImageRoute.js').ImageRoute;
 const CliLogger = require('entoj-system').cli.CliLogger;
-const ImageConfiguration = require(IMAGE_SOURCE + '/configuration/ImageConfiguration.js').ImageConfiguration;
+const ImageModuleConfiguration = require(IMAGE_SOURCE + '/configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
 const ImageRenderer = require(IMAGE_SOURCE + '/renderer/ImageRenderer.js').ImageRenderer;
 const PathesConfiguration = require('entoj-system').model.configuration.PathesConfiguration;
 const GlobalConfiguration = require('entoj-system').model.configuration.GlobalConfiguration;
@@ -24,10 +24,10 @@ describe(ImageRoute.className, function()
      */
     routeSpec(ImageRoute, 'server.route/ImageRoute', function(parameters)
     {
-        const imageConfiguration = new ImageConfiguration(new GlobalConfiguration());
-        const imageRenderer = new ImageRenderer(imageConfiguration, new PathesConfiguration());
+        const imageModuleConfiguration = new ImageModuleConfiguration(new GlobalConfiguration());
+        const imageRenderer = new ImageRenderer(imageModuleConfiguration, new PathesConfiguration());
         const cliLogger = new CliLogger('', { muted: true });
-        return [cliLogger, imageConfiguration, imageRenderer];
+        return [cliLogger, imageModuleConfiguration, imageRenderer];
     });
 
 
@@ -44,15 +44,15 @@ describe(ImageRoute.className, function()
                 cachePath: path.join(IMAGE_FIXTURES, '/temp')
             }
         };
-        global.fixtures.imageConfiguration = new ImageConfiguration(new GlobalConfiguration(options));
-        global.fixtures.imageRenderer = new ImageRenderer(global.fixtures.imageConfiguration, new PathesConfiguration());
+        global.fixtures.imageModuleConfiguration = new ImageModuleConfiguration(new GlobalConfiguration(options));
+        global.fixtures.imageRenderer = new ImageRenderer(global.fixtures.imageModuleConfiguration, new PathesConfiguration());
         global.fixtures.cliLogger = new CliLogger('', { muted: true });
     });
 
     // create a initialized testee instance
     const createTestee = function(config)
     {
-        return new ImageRoute(global.fixtures.cliLogger, global.fixtures.imageConfiguration, global.fixtures.imageRenderer);
+        return new ImageRoute(global.fixtures.cliLogger, global.fixtures.imageModuleConfiguration, global.fixtures.imageRenderer);
     };
 
     describe('serving...', function()

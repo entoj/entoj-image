@@ -12,7 +12,7 @@ const assertParameter = require('entoj-system').utils.assert.assertParameter;
 /**
  * @memberOf configuration
  */
-class ImageConfiguration extends Base
+class ImageModuleConfiguration extends Base
 {
     /**
      * @param  {model.configuration.GlobalConfiguration} globalConfiguration
@@ -46,7 +46,7 @@ class ImageConfiguration extends Base
      */
     static get className()
     {
-        return 'configuration/ImageConfiguration';
+        return 'configuration/ImageModuleConfiguration';
     }
 
 
@@ -99,4 +99,4 @@ class ImageConfiguration extends Base
  * Exports
  * @ignore
  */
-module.exports.ImageConfiguration = ImageConfiguration;
+module.exports.ImageModuleConfiguration = ImageModuleConfiguration;
