@@ -91,14 +91,17 @@ class ImageRoute extends Route
 
 
     /**
-     * @param {Express}
+     * @param {Server}
      */
-    register(express)
+    register(server)
     {
-        const promise = super.register(express);
+        const promise = super.register(server);
         promise.then(() =>
         {
-            express.all(this.path, this.handleImage.bind(this));
+            if (server)
+            {
+                server.express.all(this.path, this.handleImage.bind(this));
+            }
         });
         return promise;
     }
