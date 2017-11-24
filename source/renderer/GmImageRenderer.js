@@ -135,6 +135,10 @@ class GmImageRenderer extends ImageRenderer
                         .resize(width, height, '^')
                         .write(cacheFilename, (error, size) =>
                         {
+                            if (error)
+                            {
+                                scope.logger.warn(error);
+                            }
                             resolve(!!error);
                         });
                 });
@@ -146,6 +150,10 @@ class GmImageRenderer extends ImageRenderer
                     image.resize(width > 0 ? width : undefined, height > 0 ? height : undefined)
                         .write(cacheFilename, (error, size) =>
                         {
+                            if (error)
+                            {
+                                scope.logger.warn(error);                                
+                            }
                             resolve(!!error);
                         });
                 });
