@@ -3,12 +3,17 @@
  */
 function register(configuration, options)
 {
+    const opts = options || {};
+
     // Nunjucks filter
     configuration.mappings.add(require('entoj-system').nunjucks.Environment,
         {
             '!filters':
             [
-                require('./nunjucks/index.js').filter.ImageUrlFilter
+                {
+                    type: require('./nunjucks/index.js').filter.ImageUrlFilter,
+                    dataProperties: opts.modelProperties || ['src', 'data']
+                }
             ]
         }
     );
