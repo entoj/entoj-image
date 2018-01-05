@@ -36,7 +36,7 @@ class ImageUrlFilter extends Filter
 
         // Assign options
         this._urlTemplate = imageModuleConfiguration.expressUrl;
-        this._dataProperties = dataProperties || [];
+        this._dataProperties = dataProperties || ['src'];
     }
 
     /**
