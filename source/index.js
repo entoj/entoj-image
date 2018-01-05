@@ -4,16 +4,18 @@
 function register(configuration, options)
 {
     const opts = options || {};
+    opts.filters = opts.filters || {};
 
     // Nunjucks filter
     configuration.mappings.add(require('entoj-system').nunjucks.Environment,
         {
             '!filters':
             [
-                {
-                    type: require('./nunjucks/index.js').filter.ImageUrlFilter,
-                    dataProperties: opts.modelProperties || ['src', 'data']
-                }
+                configuration.clean(
+                    {
+                        type: require('./nunjucks/index.js').filter.ImageUrlFilter,
+                        dataProperties: opts.filters.imageProperties
+                    })
             ]
         }
     );
@@ -31,6 +33,9 @@ function register(configuration, options)
                 ]
             }
         });
+
+    // Renderer
+    configuration.mappings.add(require('./renderer/index.js').GmImageRenderer, require('./renderer/index.js').ImageRenderer);
 }
 
 
