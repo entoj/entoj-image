@@ -100,6 +100,7 @@ class ImageRoute extends Route
         {
             if (server)
             {
+                this.cliLogger.info('Adding image route <' + this.path + '>');
                 server.express.all(this.path, this.handleImage.bind(this));
             }
         });
