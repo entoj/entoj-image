@@ -20,6 +20,15 @@ function register(configuration, options)
         }
     );
 
+    // ViewModel
+    configuration.mappings.add(require('entoj-system').model.viewmodel.ViewModelRepository,
+        {
+            '!plugins':
+            [
+                require('./model/index.js').viewmodel.plugin.ViewModelImagePlugin
+            ]
+        });
+
     // Routes
     configuration.commands.add(require('entoj-system').command.ServerCommand,
         {
@@ -46,6 +55,7 @@ module.exports =
 {
     register: register,
     configuration: require('./configuration/index.js'),
+    model: require('./model/index.js'),
     nunjucks: require('./nunjucks/index.js'),
     renderer: require('./renderer/index.js'),
     server: require('./server/index.js')
