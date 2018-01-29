@@ -39,6 +39,7 @@ describe(ImagesRepository.className, function()
         return new ImagesRepository(global.fixtures.pathesConfiguration, global.fixtures.imageConfiguration);
     };
 
+
     describe('#getPathByName', function()
     {
         it('should return a promise', function()
@@ -110,10 +111,10 @@ describe(ImagesRepository.className, function()
             const promise = co(function*()
             {
                 const testee = createTestee();
-                expect(yield testee.getCacheFileByName('placeholder-01.png')).to.endWith('/0x0-false-a0e6f0730e57b5faacc686779c970254.png');
-                expect(yield testee.getCacheFileByName('placeholder-01.png', 100)).to.endWith('/100x0-false-a0e6f0730e57b5faacc686779c970254.png');
-                expect(yield testee.getCacheFileByName('placeholder-01.png', 100, 100)).to.endWith('/100x100-false-a0e6f0730e57b5faacc686779c970254.png');
-                expect(yield testee.getCacheFileByName('placeholder-01.png', 100, 100, true)).to.endWith('/100x100-true-a0e6f0730e57b5faacc686779c970254.png');
+                expect(yield testee.getCacheFileByName('placeholder-01.png')).to.endWith('0x0-false-a0e6f0730e57b5faacc686779c970254.png');
+                expect(yield testee.getCacheFileByName('placeholder-01.png', 100)).to.endWith('100x0-false-a0e6f0730e57b5faacc686779c970254.png');
+                expect(yield testee.getCacheFileByName('placeholder-01.png', 100, 100)).to.endWith('100x100-false-a0e6f0730e57b5faacc686779c970254.png');
+                expect(yield testee.getCacheFileByName('placeholder-01.png', 100, 100, true)).to.endWith('100x100-true-a0e6f0730e57b5faacc686779c970254.png');
             });
             return promise;
         });

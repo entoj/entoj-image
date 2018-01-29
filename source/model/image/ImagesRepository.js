@@ -11,6 +11,7 @@ const assertParameter = require('entoj-system').utils.assert.assertParameter;
 const glob = require('entoj-system').utils.glob;
 const co = require('co');
 const path = require('path');
+const urls = require('entoj-system').utils.urls;
 const crypto = require('crypto');
 
 
@@ -126,7 +127,7 @@ class ImagesRepository extends Base
                 /* istanbul ignore next */
                 return false;
             }
-            return path.join(path.dirname(name), path.basename(filename));
+            return urls.normalizePathSeparators(path.join(path.dirname(name), path.basename(filename)));
         });
         return promise;
     }
