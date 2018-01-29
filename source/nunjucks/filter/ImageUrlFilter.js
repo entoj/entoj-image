@@ -96,6 +96,12 @@ class ImageUrlFilter extends Filter
         const scope = this;
         return function(value, width, height, force)
         {
+            // check static
+            const globals = (this && this.env && this.env.globals)
+                ? this.env.globals
+                : {};
+            const staticMode = (globals.request) ? (typeof globals.request.query.static !== 'undefined') : false;
+
             // Get image name
             let id = '*.png';
             if (typeof value === 'string')
@@ -112,7 +118,7 @@ class ImageUrlFilter extends Filter
                     }
                 }
             }
-            id = waitForPromise(scope.imagesRepository.getPathByName(id));
+            id = waitForPromise(scope.imagesRepository.getPathByName(id, staticMode));
             if (!id)
             {
                 return false;
