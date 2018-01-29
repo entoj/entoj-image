@@ -4,9 +4,9 @@
  * Requirements
  * @ignore
  */
-const ViewModelPlugin = require('../ViewModelPlugin.js').ViewModelPlugin;
-const glob = require('../../../utils/glob.js');
-const path = require('path');
+const ImagesRepository = require('../../image/ImagesRepository.js').ImagesRepository;
+const ViewModelPlugin = require('entoj-system').model.viewmodel.ViewModelPlugin;
+const assertParameter = require('entoj-system').utils.assert.assertParameter;
 const co = require('co');
 
 
@@ -18,17 +18,32 @@ const co = require('co');
 class ViewModelImagePlugin extends ViewModelPlugin
 {
     /**
-     * @inheritDocs
+     * @inheritDoc
      */
-    constructor()
+    constructor(imagesRepository)
     {
         super();
+
+        // Check params
+        assertParameter(this, 'imagesRepository', imagesRepository, true, ImagesRepository);
+
+        // Assign
         this.name = ['image'];
+        this._imagesRepository = imagesRepository;
     }
 
 
     /**
-     * @inheritDocs
+     * @inheritDoc
+     */
+    static get injections()
+    {
+        return { 'parameters': [ImagesRepository] };
+    }
+
+
+    /**
+     * @inheritDoc
      */
     static get className()
     {
@@ -37,23 +52,23 @@ class ViewModelImagePlugin extends ViewModelPlugin
 
 
     /**
+     * @type {model.image.ImagesRepository}
+     */
+    get imagesRepository()
+    {
+        return this._imagesRepository;
+    }
+
+
+    /**
      * @inheritDocs
      */
     doExecute(repository, site, useStaticContent, name, parameters)
     {
+        const scope = this;
         const promise = co(function*()
         {
-            const basePath = yield repository.pathesConfiguration.resolveData('/images');
-            const files = yield glob(path.join(basePath, parameters));
-            if (!files || !files.length)
-            {
-                /* istanbul ignore next */
-                return undefined;
-            }
-            const index = (useStaticContent)
-                ? 0
-                : Math.round(Math.random() * (files.length - 1));
-            return path.basename(files[index]);
+            return yield scope.imagesRepository.getPathByName(parameters, useStaticContent);
         });
         return promise;
     }
