@@ -80,7 +80,7 @@ class ImageRoute extends Route
         const image = request.params.image || request.params['0'];
         const width = parseInt(request.params.width, 10) || parseInt(request.query.width, 10) || 0;
         const height = parseInt(request.params.height, 10) || parseInt(request.query.height, 10) || 0;
-        const forced = request.params.forced == '1' || request.query.forced == '1' || false;
+        const forced = request.params.forced || request.query.forced || false;
         if (!image)
         {
             next();
@@ -88,7 +88,7 @@ class ImageRoute extends Route
         }
 
         // Resize
-        const work = this._cliLogger.work('Serving image <' + image + '> @ <' + width + '>x<' + height + '>');
+        const work = this._cliLogger.work('Serving image <' + image + '> @ <' + width + '>x<' + height + '> forced <' + forced + '>');
         this.imageRenderer.resize(image, width, height, forced).then((filename) =>
         {
             if (filename)
