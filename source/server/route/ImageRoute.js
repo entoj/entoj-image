@@ -5,7 +5,7 @@
  * @ignore
  */
 const Route = require('entoj-system').server.route.Route;
-const ImageModuleConfiguration = require('../../configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
+const ImageConfiguration = require('../../configuration/ImageConfiguration.js').ImageConfiguration;
 const ImageRenderer = require('../../renderer/ImageRenderer.js').ImageRenderer;
 const CliLogger = require('entoj-system').cli.CliLogger;
 const assertParameter = require('entoj-system').utils.assert.assertParameter;
@@ -20,18 +20,18 @@ class ImageRoute extends Route
      * @param {ImageResizer} [imageResizer]
      * @param {object} [options]
      */
-    constructor(cliLogger, imageModuleConfiguration, imageRenderer, options)
+    constructor(cliLogger, moduleConfiguration, imageRenderer, options)
     {
         super(cliLogger.createPrefixed('route.imageroute'));
 
         // Check params
         assertParameter(this, 'imageRenderer', imageRenderer, true, ImageRenderer);
-        assertParameter(this, 'imageModuleConfiguration', imageModuleConfiguration, true, ImageModuleConfiguration);
+        assertParameter(this, 'moduleConfiguration', moduleConfiguration, true, ImageConfiguration);
 
         // Assign options
         const opts = options || '';
         this._imageRenderer = imageRenderer;
-        this._path = opts.path || imageModuleConfiguration.expressRoute;
+        this._path = opts.path || moduleConfiguration.expressRoute;
     }
 
 
@@ -40,7 +40,7 @@ class ImageRoute extends Route
      */
     static get injections()
     {
-        return { 'parameters': [CliLogger, ImageModuleConfiguration, ImageRenderer, 'server.route/ImageRoute.options'] };
+        return { 'parameters': [CliLogger, ImageConfiguration, ImageRenderer, 'server.route/ImageRoute.options'] };
     }
 
 
@@ -76,16 +76,31 @@ class ImageRoute extends Route
      */
     handleImage(request, response, next)
     {
-        // Get size
-        const width = parseInt(request.params.width, 10) || 0;
-        const height = parseInt(request.params.height, 10) || 0;
+        // Get params
+        const image = request.params.image || request.params['0'];
+        const width = parseInt(request.params.width, 10) || parseInt(request.query.width, 10) || 0;
+        const height = parseInt(request.params.height, 10) || parseInt(request.query.height, 10) || 0;
+        const forced = request.params.forced == '1' || request.query.forced == '1' || false;
+        if (!image)
+        {
+            next();
+            return;
+        }
 
         // Resize
-        const work = this._cliLogger.work('Serving image <' + request.params.image + '> as <' + width + '>x<' + height + '>');
-        this.imageRenderer.resize(request.params.image, width, height, request.params.forced).then((filename) =>
+        const work = this._cliLogger.work('Serving image <' + image + '> @ <' + width + '>x<' + height + '>');
+        this.imageRenderer.resize(image, width, height, forced).then((filename) =>
         {
-            response.sendFile(filename);
-            this.cliLogger.end(work);
+            if (filename)
+            {
+                response.sendFile(filename);
+                this.cliLogger.end(work);
+            }
+            else
+            {
+                this.cliLogger.end(work, 'File <' + image + '> not found.');
+                next();
+            }
         });
     }
 

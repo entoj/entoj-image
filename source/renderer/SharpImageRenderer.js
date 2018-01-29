@@ -5,8 +5,8 @@
  * @ignore
  */
 const ImageRenderer = require('./ImageRenderer.js').ImageRenderer;
-const ImageModuleConfiguration = require('../configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
-const PathesConfiguration = require('entoj-system').model.configuration.PathesConfiguration;
+const ImagesRepository = require('../model/image/ImagesRepository.js').ImagesRepository;
+const ImageConfiguration = require('../configuration/ImageConfiguration.js').ImageConfiguration;
 const ErrorHandler = require('entoj-system').error.ErrorHandler;
 const co = require('co');
 const fs = require('co-fs-extra');
@@ -21,16 +21,16 @@ const sharp = require('try-require')('sharp');
 class SharpImageRenderer extends ImageRenderer
 {
     /**
-     * @inheritDocs
+     * @inheritDoc
      */
     static get injections()
     {
-        return { 'parameters': [ImageModuleConfiguration, PathesConfiguration, 'renderer/ImageResizer.options'] };
+        return { 'parameters': [ImagesRepository, ImageConfiguration, 'renderer/ImageResizer.useCache'] };
     }
 
 
     /**
-     * @inheritDocs
+     * @inheritDoc
      */
     static get className()
     {

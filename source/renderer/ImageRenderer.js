@@ -5,13 +5,10 @@
  * @ignore
  */
 const Base = require('entoj-system').Base;
-const ImageModuleConfiguration = require('../configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
-const PathesConfiguration = require('entoj-system').model.configuration.PathesConfiguration;
+const ImageConfiguration = require('../configuration/ImageConfiguration.js').ImageConfiguration;
+const ImagesRepository = require('../model/image/ImagesRepository.js').ImagesRepository;
 const ErrorHandler = require('entoj-system').error.ErrorHandler;
-const waitForPromise = require('entoj-system').utils.synchronize.waitForPromise;
 const assertParameter = require('entoj-system').utils.assert.assertParameter;
-const glob = require('entoj-system').utils.glob;
-const pathes = require('entoj-system').utils.pathes;
 const co = require('co');
 const fs = require('co-fs-extra');
 const path = require('path');
@@ -30,34 +27,33 @@ class ImageRenderer extends Base
      * @param {String} options.sourcePath
      * @param {String} options.cachePath
      */
-    constructor(imageModuleConfiguration, pathesConfiguration, options)
+    constructor(imagesRepository, moduleConfiguration, options)
     {
         super(options);
 
         // Check params
-        assertParameter(this, 'imageModuleConfiguration', imageModuleConfiguration, true, ImageModuleConfiguration);
-        assertParameter(this, 'pathesConfiguration', pathesConfiguration, true, PathesConfiguration);
+        assertParameter(this, 'moduleConfiguration', moduleConfiguration, true, ImageConfiguration);
+        assertParameter(this, 'imagesRepository', imagesRepository, true, ImagesRepository);
 
         // Assign
         const opts = options || {};
         this._useCache = (typeof opts.useCache !== 'undefined') ? opts.useCache : true;
         this._resizableFileExtensions = opts.resizableFileExtensions || ['.png', '.jpg'];
-        this._sourcePath = waitForPromise(pathesConfiguration.resolve(opts.sourcePath || imageModuleConfiguration.sourcePath));
-        this._cachePath = waitForPromise(pathesConfiguration.resolve(opts.cachePath || imageModuleConfiguration.cachePath));
+        this._imagesRepository = imagesRepository;
     }
 
 
     /**
-     * @inheritDocs
+     * @inheritDoc
      */
     static get injections()
     {
-        return { 'parameters': [ImageModuleConfiguration, PathesConfiguration, 'renderer/ImageResizer.options'] };
+        return { 'parameters': [ImagesRepository, ImageConfiguration, 'renderer/ImageResizer.useCache'] };
     }
 
 
     /**
-     * @inheritDocs
+     * @inheritDoc
      */
     static get className()
     {
@@ -75,20 +71,11 @@ class ImageRenderer extends Base
 
 
     /**
-     * @type {String}
+     * @type {model.image.ImagesRepository}
      */
-    get sourcePath()
+    get imagesRepository()
     {
-        return this._sourcePath;
-    }
-
-
-    /**
-     * @type {String}
-     */
-    get cachePath()
-    {
-        return this._cachePath;
+        return this._imagesRepository;
     }
 
 
@@ -98,49 +85,6 @@ class ImageRenderer extends Base
     get resizableFileExtensions()
     {
         return this._resizableFileExtensions;
-    }
-
-
-    /**
-     * Get source image filename
-     *
-     * @protected
-     * @param {string} name
-     * @returns {Promise<string>}
-     */
-    resolveImageFilename(name)
-    {
-        const scope = this;
-        const promise = co(function*()
-        {
-            const pth = path.join(scope.sourcePath, '/' + name);
-            const files = yield glob(pth);
-            if (!files || !files.length)
-            {
-                return false;
-            }
-            const index = Math.round(Math.random() * (files.length - 1));
-            return files[index];
-        }).catch(ErrorHandler.handler(scope));
-        return promise;
-    }
-
-
-    /**
-     * Get cached image filename
-     *
-     * @protected
-     * @param {string} filename
-     * @param {number} width
-     * @param {number} height
-     * @param {bool} forced
-     * @returns {Promise<string>}
-     */
-    resolveCacheFilename(filename, width, height, forced)
-    {
-        const result = pathes.concat(this.cachePath,
-            '/' + (width || 0) + 'x' + (height || 0) + '-' + (forced || false) + '-' + path.basename(filename));
-        return Promise.resolve(result);
     }
 
 
@@ -346,18 +290,21 @@ class ImageRenderer extends Base
                 ? forced
                 : '0';
 
-            // Ensure cache directory
-            yield fs.mkdirp(scope.cachePath);
-
             // See if image needs to be resized
-            const imageFilename = yield scope.resolveImageFilename(name);
+            const imageName = yield scope.imagesRepository.getPathByName(name);
+            if (!imageName)
+            {
+                scope.logger.warn('Image ' + name + ' does not exist.');
+                return false;
+            }
+            const imageFilename = yield scope.imagesRepository.getFileByName(imageName);
             if (scope.resizableFileExtensions.indexOf(path.extname(imageFilename)) === -1)
             {
                 return imageFilename;
             }
 
             // Check cache
-            const cacheFilename = yield scope.resolveCacheFilename(imageFilename, w, h, f);
+            const cacheFilename = yield scope.imagesRepository.getCacheFileByName(imageName, w, h, f);
             if (scope.useCache)
             {
                 const cacheFilenameExists = yield fs.exists(cacheFilename);
@@ -368,6 +315,7 @@ class ImageRenderer extends Base
             }
 
             // Render
+            yield fs.mkdirp(path.dirname(cacheFilename));
             const rendered = yield scope.renderImage(imageFilename, cacheFilename, w, h, f);
             if (!rendered)
             {

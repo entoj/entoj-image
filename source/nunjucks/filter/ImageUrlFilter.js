@@ -5,8 +5,10 @@
  * @ignore
  */
 const Filter = require('entoj-system').nunjucks.filter.Filter;
-const ImageModuleConfiguration = require('../../configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
+const ImageConfiguration = require('../../configuration/ImageConfiguration.js').ImageConfiguration;
+const ImagesRepository = require('../../model/image/ImagesRepository.js').ImagesRepository;
 const assertParameter = require('entoj-system').utils.assert.assertParameter;
+const waitForPromise = require('entoj-system').utils.synchronize.waitForPromise;
 const templateString = require('es6-template-strings');
 const isPlainObject = require('lodash.isplainobject');
 
@@ -26,17 +28,19 @@ class ImageUrlFilter extends Filter
     /**
      * @inheritDocs
      */
-    constructor(imageModuleConfiguration, dataProperties)
+    constructor(imagesRepository, moduleConfiguration, dataProperties)
     {
         super();
         this._name = 'imageUrl';
 
         // Check params
-        assertParameter(this, 'imageModuleConfiguration', imageModuleConfiguration, true, ImageModuleConfiguration);
+        assertParameter(this, 'moduleConfiguration', moduleConfiguration, true, ImageConfiguration);
+        assertParameter(this, 'imagesRepository', imagesRepository, true, ImagesRepository);
 
         // Assign options
-        this._urlTemplate = imageModuleConfiguration.expressUrl;
+        this._urlTemplate = moduleConfiguration.expressUrl;
         this._dataProperties = dataProperties || ['src'];
+        this._imagesRepository = imagesRepository;
     }
 
     /**
@@ -44,7 +48,7 @@ class ImageUrlFilter extends Filter
      */
     static get injections()
     {
-        return { 'parameters': [ImageModuleConfiguration, 'nunjucks.filter/ImageUrlFilter.dataProperties'] };
+        return { 'parameters': [ImagesRepository, ImageConfiguration, 'nunjucks.filter/ImageUrlFilter.dataProperties'] };
     }
 
 
@@ -76,6 +80,15 @@ class ImageUrlFilter extends Filter
 
 
     /**
+     * @type {model.image.ImagesRepository}
+     */
+    get imagesRepository()
+    {
+        return this._imagesRepository;
+    }
+
+
+    /**
      * @inheritDocs
      */
     filter()
@@ -98,6 +111,11 @@ class ImageUrlFilter extends Filter
                         id = value[dataProperty];
                     }
                 }
+            }
+            id = waitForPromise(scope.imagesRepository.getPathByName(id));
+            if (!id)
+            {
+                return false;
             }
 
             // Handle sizing
@@ -122,7 +140,7 @@ class ImageUrlFilter extends Filter
                     const aspectParts = width.split('x');
                     const aspectRatio = parseInt(aspectParts[1]) / parseInt(aspectParts[0]);
                     w = height;
-                    h = w * aspectRatio;
+                    h = Math.round(w * aspectRatio);
                     f = 1;
                 }
             }

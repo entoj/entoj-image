@@ -4,7 +4,8 @@
  * Requirements
  * @ignore
  */
-const ImageModuleConfiguration = require(IMAGE_SOURCE + '/configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
+const ImageConfiguration = require(IMAGE_SOURCE + '/configuration/ImageConfiguration.js').ImageConfiguration;
+const ImagesRepository = require(IMAGE_SOURCE + '/model/image/ImagesRepository.js').ImagesRepository;
 const PathesConfiguration = require('entoj-system').model.configuration.PathesConfiguration;
 const GlobalConfiguration = require('entoj-system').model.configuration.GlobalConfiguration;
 const baseSpec = require('entoj-system/test').BaseShared;
@@ -22,7 +23,7 @@ function spec(type, className, isImplementation)
     /**
      * Base Test
      */
-    baseSpec(type, className, () => [global.fixtures.imageModuleConfiguration, global.fixtures.pathesConfiguration]);
+    baseSpec(type, className, () => [global.fixtures.imagesRepository, global.fixtures.imageModuleConfiguration]);
 
     /**
      * ImageRenderer Test
@@ -40,8 +41,9 @@ function spec(type, className, isImplementation)
                 }
             };
             global.fixtures.globalConfiguration = new GlobalConfiguration(options);
-            global.fixtures.imageModuleConfiguration = new ImageModuleConfiguration(global.fixtures.globalConfiguration);
             global.fixtures.pathesConfiguration = new PathesConfiguration();
+            global.fixtures.imageModuleConfiguration = new ImageConfiguration(global.fixtures.globalConfiguration);
+            global.fixtures.imagesRepository = new ImagesRepository(global.fixtures.pathesConfiguration, global.fixtures.imageModuleConfiguration);
             yield fs.emptyDir(options.image.cachePath);
         });
         return promise;
@@ -50,79 +52,8 @@ function spec(type, className, isImplementation)
     // create a initialized testee instance
     const createTestee = function(config)
     {
-        return new type(global.fixtures.imageModuleConfiguration, global.fixtures.pathesConfiguration);
+        return new type(global.fixtures.imagesRepository, global.fixtures.imageModuleConfiguration);
     };
-
-
-    describe('#resolveImageFilename()', function()
-    {
-        it('should resolve to false when given a existing image name', function()
-        {
-            const testee = createTestee();
-            const promise = co(function*()
-            {
-                const filename = yield testee.resolveImageFilename('sousspark-01.jpg');
-                expect(filename).to.be.not.ok;
-            });
-            return promise;
-        });
-
-
-        it('should resolve to a filename when given a existing image name', function()
-        {
-            const testee = createTestee();
-            const promise = co(function*()
-            {
-                const filename = yield testee.resolveImageFilename('southpark-01.jpg');
-                expect(filename).to.be.equal(path.join(IMAGE_FIXTURES, '/images/southpark-01.jpg'));
-            });
-            return promise;
-        });
-
-        it('should resolve to a random filename when given a valid glob pattern', function()
-        {
-            const testee = createTestee();
-            const expected =
-            [
-                path.join(IMAGE_FIXTURES, '/images/southpark-01.jpg'),
-                path.join(IMAGE_FIXTURES, '/images/southpark-02.jpg')
-            ];
-            const promise = co(function*()
-            {
-                let filename;
-                filename = yield testee.resolveImageFilename('southpark-*.jpg');
-                expect(expected).to.include(filename);
-                filename = yield testee.resolveImageFilename('southpark-*.jpg');
-                expect(expected).to.include(filename);
-            });
-            return promise;
-        });
-    });
-
-
-    describe('#resolveCacheFilename()', function()
-    {
-        it('should resolve to a filename based on all given parameters', function()
-        {
-            const testee = createTestee();
-            const promise = co(function*()
-            {
-                const imageFilename = yield testee.resolveImageFilename('southpark-01.jpg');
-                let filename;
-                filename = yield testee.resolveCacheFilename(imageFilename);
-                expect(filename).to.be.equal(path.join(IMAGE_FIXTURES, '/temp/0x0-false-southpark-01.jpg'));
-                filename = yield testee.resolveCacheFilename(imageFilename, 100);
-                expect(filename).to.be.equal(path.join(IMAGE_FIXTURES + '/temp/100x0-false-southpark-01.jpg'));
-                filename = yield testee.resolveCacheFilename(imageFilename, undefined, 100);
-                expect(filename).to.be.equal(path.join(IMAGE_FIXTURES + '/temp/0x100-false-southpark-01.jpg'));
-                filename = yield testee.resolveCacheFilename(imageFilename, undefined, undefined, true);
-                expect(filename).to.be.equal(path.join(IMAGE_FIXTURES + '/temp/0x0-true-southpark-01.jpg'));
-                filename = yield testee.resolveCacheFilename(imageFilename, 1000, 2000, true);
-                expect(filename).to.be.equal(path.join(IMAGE_FIXTURES + '/temp/1000x2000-true-southpark-01.jpg'));
-            });
-            return promise;
-        });
-    });
 
 
     describe('#getImageSettings()', function()
@@ -143,7 +74,7 @@ function spec(type, className, isImplementation)
             const testee = createTestee();
             const promise = co(function*()
             {
-                const imageFilename = yield testee.resolveImageFilename('southpark-01.jpg');
+                const imageFilename = yield testee.imagesRepository.getFileByName('southpark-01.jpg');
                 const settings = yield testee.getImageSettings(imageFilename);
                 expect(settings.focal.x).to.be.equal(0);
                 expect(settings.focal.y).to.be.equal(0);
@@ -161,7 +92,7 @@ function spec(type, className, isImplementation)
             const testee = createTestee();
             const promise = co(function*()
             {
-                const imageFilename = yield testee.resolveImageFilename('southpark-02.jpg');
+                const imageFilename = yield testee.imagesRepository.getFileByName('southpark-02.jpg');
                 const settings = yield testee.getImageSettings(imageFilename);
                 expect(settings.focal.x).to.be.equal(652);
                 expect(settings.focal.y).to.be.equal(176);
@@ -178,7 +109,7 @@ function spec(type, className, isImplementation)
                 const testee = createTestee();
                 const promise = co(function*()
                 {
-                    const imageFilename = yield testee.resolveImageFilename('southpark-01.jpg');
+                    const imageFilename = yield testee.imagesRepository.getFileByName('southpark-01.jpg');
                     const size = yield testee.getImageSettings(imageFilename);
                     expect(size.width).to.be.equal(960);
                     expect(size.height).to.be.equal(540);

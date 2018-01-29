@@ -5,8 +5,9 @@
  */
 const ImageRoute = require(IMAGE_SOURCE + '/server/route/ImageRoute.js').ImageRoute;
 const CliLogger = require('entoj-system').cli.CliLogger;
-const ImageModuleConfiguration = require(IMAGE_SOURCE + '/configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
+const ImageConfiguration = require(IMAGE_SOURCE + '/configuration/ImageConfiguration.js').ImageConfiguration;
 const ImageRenderer = require(IMAGE_SOURCE + '/renderer/ImageRenderer.js').ImageRenderer;
+const ImagesRepository = require(IMAGE_SOURCE + '/model/image/ImagesRepository.js').ImagesRepository;
 const PathesConfiguration = require('entoj-system').model.configuration.PathesConfiguration;
 const GlobalConfiguration = require('entoj-system').model.configuration.GlobalConfiguration;
 const routeSpec = require('entoj-system/test').server.RouteShared;
@@ -24,8 +25,10 @@ describe(ImageRoute.className, function()
      */
     routeSpec(ImageRoute, 'server.route/ImageRoute', function(parameters)
     {
-        const imageModuleConfiguration = new ImageModuleConfiguration(new GlobalConfiguration());
-        const imageRenderer = new ImageRenderer(imageModuleConfiguration, new PathesConfiguration());
+        const pathesConfiguration = new PathesConfiguration();
+        const imageModuleConfiguration = new ImageConfiguration(new GlobalConfiguration());
+        const imageRepository = new ImagesRepository(pathesConfiguration, imageModuleConfiguration);
+        const imageRenderer = new ImageRenderer(imageRepository, imageModuleConfiguration);
         const cliLogger = new CliLogger('', { muted: true });
         return [cliLogger, imageModuleConfiguration, imageRenderer];
     });
@@ -44,8 +47,10 @@ describe(ImageRoute.className, function()
                 cachePath: path.join(IMAGE_FIXTURES, '/temp')
             }
         };
-        global.fixtures.imageModuleConfiguration = new ImageModuleConfiguration(new GlobalConfiguration(options));
-        global.fixtures.imageRenderer = new ImageRenderer(global.fixtures.imageModuleConfiguration, new PathesConfiguration());
+        global.fixtures.pathesConfiguration = new PathesConfiguration();
+        global.fixtures.imageModuleConfiguration = new ImageConfiguration(new GlobalConfiguration(options));
+        global.fixtures.imageRepository = new ImagesRepository(global.fixtures.pathesConfiguration, global.fixtures.imageModuleConfiguration);
+        global.fixtures.imageRenderer = new ImageRenderer(global.fixtures.imageRepository, global.fixtures.imageModuleConfiguration);
         global.fixtures.cliLogger = new CliLogger('', { muted: true });
     });
 
@@ -80,7 +85,7 @@ describe(ImageRoute.className, function()
             global.fixtures.server.start().then(function(server)
             {
                 request(server)
-                    .get('/images/southpark-01.jpg/100/100')
+                    .get('/images/southpark-01.jpg?width=100&height=100')
                     .expect(200)
                     .expect('Content-Type', /jpeg/, done);
             });
@@ -95,7 +100,7 @@ describe(ImageRoute.className, function()
             global.fixtures.server.start().then(function(server)
             {
                 request(server)
-                    .get('/images/southpark-01.jpg/100/100/br')
+                    .get('/images/southpark-01.jpg?width=100&height=100&forced=br')
                     .expect(200)
                     .expect('Content-Type', /jpeg/, done);
             });

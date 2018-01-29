@@ -5,8 +5,8 @@
  * @ignore
  */
 const ImageRenderer = require('./ImageRenderer.js').ImageRenderer;
-const ImageModuleConfiguration = require('../configuration/ImageModuleConfiguration.js').ImageModuleConfiguration;
-const PathesConfiguration = require('entoj-system').model.configuration.PathesConfiguration;
+const ImagesRepository = require('../model/image/ImagesRepository.js').ImagesRepository;
+const ImageConfiguration = require('../configuration/ImageConfiguration.js').ImageConfiguration;
 const ErrorHandler = require('entoj-system').error.ErrorHandler;
 const co = require('co');
 const fs = require('co-fs-extra');
@@ -21,11 +21,11 @@ const gm = require('gm');
 class GmImageRenderer extends ImageRenderer
 {
     /**
-     * @inheritDocs
+     * @inheritDoc
      */
     static get injections()
     {
-        return { 'parameters': [ImageModuleConfiguration, PathesConfiguration, 'renderer/ImageResizer.options'] };
+        return { 'parameters': [ImagesRepository, ImageConfiguration, 'renderer/ImageResizer.useCache'] };
     }
 
 
@@ -152,7 +152,7 @@ class GmImageRenderer extends ImageRenderer
                         {
                             if (error)
                             {
-                                scope.logger.warn(error);                                
+                                scope.logger.warn(error);
                             }
                             resolve(!!error);
                         });

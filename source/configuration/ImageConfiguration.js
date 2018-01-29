@@ -12,7 +12,7 @@ const assertParameter = require('entoj-system').utils.assert.assertParameter;
 /**
  * @memberOf configuration
  */
-class ImageModuleConfiguration extends Base
+class ImageConfiguration extends Base
 {
     /**
      * @param  {model.configuration.GlobalConfiguration} globalConfiguration
@@ -27,8 +27,9 @@ class ImageModuleConfiguration extends Base
         // Create configuration
         this._sourcePath = globalConfiguration.get('image.sourcePath', '${data}/images');
         this._cachePath = globalConfiguration.get('image.cachePath', '${cache}/images');
-        this._expressRoute = globalConfiguration.get('image.expressRoute', '/images/:image/:width?/:height?/:forced?');
-        this._expressUrl = globalConfiguration.get('image.expressUrl', '/images/${image}/${width}/${height}/${forced}');
+        this._expressRoute = globalConfiguration.get('image.expressRoute', '/images/*');
+        this._expressUrl = globalConfiguration.get('image.expressUrl', '/images/${image}?width=${width}&height=${height}&forced=${forced}');
+        this._resizeableExtensions = globalConfiguration.get('image.resizeableExtensions', ['.png', '.jpg']);
     }
 
 
@@ -46,7 +47,7 @@ class ImageModuleConfiguration extends Base
      */
     static get className()
     {
-        return 'configuration/ImageModuleConfiguration';
+        return 'configuration/ImageConfiguration';
     }
 
 
@@ -92,6 +93,17 @@ class ImageModuleConfiguration extends Base
     {
         return this._expressUrl;
     }
+
+
+    /**
+     * A list of file extensions that are resizable via gm or sharp
+     *
+     * @type {String}
+     */
+    get resizeableExtensions()
+    {
+        return this._resizeableExtensions;
+    }
 }
 
 
@@ -99,4 +111,4 @@ class ImageModuleConfiguration extends Base
  * Exports
  * @ignore
  */
-module.exports.ImageModuleConfiguration = ImageModuleConfiguration;
+module.exports.ImageConfiguration = ImageConfiguration;
