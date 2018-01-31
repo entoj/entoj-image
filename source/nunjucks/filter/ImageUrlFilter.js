@@ -127,7 +127,7 @@ class ImageUrlFilter extends Filter
             // Handle sizing
             let w = width || 0;
             let h = height || 0;
-            let f = (force === true) ? 1 : 0;
+            let f = (force === true || force === 1) ? 1 : 0;
 
             // Just serve if no valid sizing or svg
             if ((!width && !height) ||
