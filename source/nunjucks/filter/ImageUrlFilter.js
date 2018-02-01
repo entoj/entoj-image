@@ -75,6 +75,11 @@ class ImageUrlFilter extends Filter
      */
     get urlTemplate()
     {
+        if (this.environment &&
+            this.environment.buildConfiguration)
+        {
+            return this.environment.buildConfiguration.get('filters.imageUrlTemplate', this._urlTemplate);
+        }
         return this._urlTemplate;
     }
 
