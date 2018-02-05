@@ -157,16 +157,17 @@ class ImageUrlFilter extends Filter
             }
 
             // Generate url
-            const result = templateString(scope.urlTemplate,
-                {
-                    image: id,
-                    width: w,
-                    height: h,
-                    forced: f
-                });
+            const data =
+            {
+                image: id,
+                width: w,
+                height: h,
+                forced: f
+            };
+            const result = templateString(scope.urlTemplate, data);
 
             // Done
-            return result;
+            return scope.applyCallbacks(result, arguments, data);
         };
     }
 }
