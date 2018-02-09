@@ -14,16 +14,17 @@
   "dependencies": {
     "co": "^4.6.0",
     "co-fs-extra": "^1.2.1",
-    "entoj-system": "^0.2.11",
+    "entoj-system": "^0.2.15",
     "es6-template-strings": "^2.0.1",
     "gm": "^1.23.1",
+    "lodash.isplainobject": "^4.0.6",
     "try-require": "^1.2.1"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "coveralls": "^2.13.3",
     "entoj-test-fixture": "^0.9.9",
-    "eslint": "^4.14.0",
+    "eslint": "^4.17.0",
     "git-changelog": "^1.1.2",
     "istanbul": "^0.4.5",
     "mocha": "^3.5.3",
